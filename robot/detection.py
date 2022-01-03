@@ -16,4 +16,4 @@ class MetalDetector(Sensor):
 
     @property
     def analog_read(self):
-        return self.value()
+        return int(self.value() < 350)
