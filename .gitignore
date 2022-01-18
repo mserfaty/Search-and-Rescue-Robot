@@ -1,3 +1,7 @@
 .idea/
 .venv/
 venv/
+/GUI_old/
+/GUI/.idea/
+/GUI/out/
+/GUI/GUI.iml

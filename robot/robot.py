@@ -4,10 +4,16 @@ from ev3dev2.sensor.lego import UltrasonicSensor, GyroSensor, ColorSensor
 from move import MoveDiff
 from detection import MetalDetector
 from pickup import Pickup
+from communication import Client
 
 
 class Robot(object):
-    def __init__(self, robot_length, motor_ports=None, sensor_ports=None):
+    def __init__(self, robot_length, motor_ports=None, sensor_ports=None, gui_address=None):
+
+        if gui_address:
+            self.socket = Client(gui_address["host"], gui_address["port"])
+            print("COM TO HOST {0}:{1} INITIALIZED".format(gui_address["host"], gui_address["port"]))
+
         if motor_ports:
             if "wheel_left" and "wheel_right" in motor_ports:
                 # self.move = Move(robot_length, motor_ports["wheel_left"], motor_ports["wheel_right"])
