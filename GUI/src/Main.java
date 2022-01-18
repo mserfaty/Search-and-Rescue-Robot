@@ -9,7 +9,7 @@ public class Main extends PApplet {
     int in_movement, sensed_object, metal, picked_up, dropped;
     int[] sensed_color = new int[3];
     int counter = 1;
-    int val;
+    int end_of_mission = 0;
 
     PFont font1, font2, font3, font4, font5, font6, font7, font8, font9, font10, font11, font12, font13;//Font is nothing but implement the words (for that pre-defintion)
     PImage escalarma1; //Import image from the data folder
@@ -69,14 +69,19 @@ public class Main extends PApplet {
         textFont(font4, 18);
         text("- Sensed object", 50, 422);
         textFont(font5, 18);
-        text("- Dropped object", 50, 450);
+        text("- Dropped object", 50, 475);
+        textFont(font11, 18);
+        text("- Picked object", 50, 450);
 
         fill(246, 250, 35); //Yellow
         ellipse(30, 395, 20, 20); //Placing legends color as yellow // ellipse used for legends, its a indicator for robot action
-        fill(66, 250, 97); //green
+        fill(240, 116, 126); //green
         ellipse(30, 420, 20, 20); //Placing legends color as green
-        fill(255, 35, 50); //red
-        ellipse(30, 445, 20, 20); //Placing legends color as red
+        fill(66, 224, 114); //
+        ellipse(30, 470, 20, 20); //Placing legends color as red
+        fill(234, 182, 9); //
+        ellipse(30, 445, 20, 20); //Placing legends color as red #234, 182, 9
+
 
         fill(153);
         rect(200, 50, 700, 500); //placing rectangle first one after GUI size//
@@ -253,10 +258,11 @@ public class Main extends PApplet {
         if (dropped == 1) {
             droppedobj(); // dropped metal object at muster point
 //            delay(1000);
-            if (in_movement == 0) {
-                delay(1000);
+            if (in_movement == 0 && end_of_mission == 1) {
+                delay(3000);
                 finaltick(); // mission accomplished
             }
+            end_of_mission = 1;
         }
 
         // ================
