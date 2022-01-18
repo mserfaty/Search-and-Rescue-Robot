@@ -10,13 +10,15 @@ from robot import Robot
 sound = Sound()
 
 # Robot properties
-MOTOR_PORTS = {"wheel_left": OUTPUT_C, "wheel_right": OUTPUT_B, "pickup_left": OUTPUT_D, "pickup_right": OUTPUT_A}
-SENSOR_PORTS = {"metal_detector": INPUT_1, "gyro_sensor": INPUT_2, "color_sensor": INPUT_3, "ultrasonic_sensor": INPUT_4}
-ROBOT_LENGTH = 133.5  # 133.9
+MOTOR_PORTS = {"wheel_right": OUTPUT_A, "pickup": OUTPUT_B, "wheel_left": OUTPUT_D}
+SENSOR_PORTS = {"ultrasonic_sensor": INPUT_1, "metal_detector": INPUT_2, "gyro_sensor": INPUT_3,
+                "color_sensor": INPUT_4}
+
+ROBOT_LENGTH = 105.5  # 133.5  # 133.9
 
 # Distances
 DISTANCE_OBJECT = 200
-SENSORS_DISTANCE = 70
+SENSORS_DISTANCE = 45  # 70
 
 # Speeds
 NORMAL_SPEED = 200  # 20
@@ -59,13 +61,14 @@ def avoid_object():
     # Go backward to avoid hitting object, then go to 3 TRACK_WIDTH mm on the right and continue track
     robot.move.go_for_distance(-AVOID_SPEED, 100)
 
-    x = robot.move.mdiff.x_pos_mm + 3 * TRACK_WIDTH
+    x = robot.move.mdiff.x_pos_mm + 3 * TRACK_WIDTH  # TODO: change nb 3
     y = robot.move.mdiff.y_pos_mm
     print((x, y), "AVOID")
     robot.move.go_to_coords(AVOID_SPEED, x, y, wait_until_not_moving=True)
     # detect_object((x, y))
     object_avoided = True
 
+    # TODO: add other patterns
     if PARALLEL_TRACK:
         skipcount = 4
 

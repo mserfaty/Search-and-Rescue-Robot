@@ -11,11 +11,11 @@ from robot import Robot
 
 ROBOT_LENGTH_200 = 130.8  # 133.9
 ROBOT_LENGTH_150 = 134
-ROBOT_LENGTH = ROBOT_LENGTH_200
+ROBOT_LENGTH = 105.5
 
-# MOTOR_PORTS = {"wheel_left": OUTPUT_C, "wheel_right": OUTPUT_B}
-MOTOR_PORTS = {"wheel_left": OUTPUT_C, "wheel_right": OUTPUT_B, "pickup_left": OUTPUT_D, "pickup_right": OUTPUT_A}
-SENSOR_PORTS = {"metal_detector": INPUT_1, "gyro_sensor": INPUT_2, "ultrasonic_sensor": INPUT_4}
+MOTOR_PORTS = {"wheel_left": OUTPUT_D, "wheel_right": OUTPUT_A}
+SENSOR_PORTS = {"gyro_sensor": INPUT_2}
+
 # robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
 
 #
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     # robot.main()  # Execution of the Motor loop
     # for i in range(1):
 
-    # robot.move.turn_left(200, 360, use_gyro=True)
-    robot.move.go_coord_straight(150, 800, 800)
-    time.sleep(100)
+    robot.move.turn_right(200, 5*360, use_gyro=False)
+    # robot.move.go_coord_straight(150, 800, 800)
+    time.sleep(1)
     # robot.move.turn_right(30, 90)
     # robot.pickup.open_arms()
     # time.sleep(3.5)
