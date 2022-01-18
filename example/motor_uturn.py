@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
+
+# === Test script for turning ===
+
 import time
 
-from ev3dev2.motor import OUTPUT_A, OUTPUT_B, MoveTank, MoveDifferential
-from ev3dev2.wheel import EV3EducationSetTire
+from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
+from ev3dev2.motor import OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D
 
 from robot import Robot
 
+ROBOT_LENGTH_200 = 130.8  # 133.9
+ROBOT_LENGTH_150 = 134
+ROBOT_LENGTH = 105.5
 
-ROBOT_LENGTH = 135.5
-MOTOR_PORTS = {"left": OUTPUT_A, "right": OUTPUT_B}
+MOTOR_PORTS = {"wheel_left": OUTPUT_D, "wheel_right": OUTPUT_A}
+SENSOR_PORTS = {"gyro_sensor": INPUT_2}
+
+# robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
 
 #
 # class Robot(object):
@@ -65,13 +73,29 @@ MOTOR_PORTS = {"left": OUTPUT_A, "right": OUTPUT_B}
 #         # self.motor_right.reset()
 #         # self.motor_left.reset()
 
-
 if __name__ == '__main__':
-    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS)
+    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
     # robot = Robot()  # Initialisation of the robot
     # robot.main()  # Execution of the Motor loop
-    robot.move.go_straight(25, 100)
+    # for i in range(1):
 
+    robot.move.turn_right(200, 5*360, use_gyro=False)
+    # robot.move.go_coord_straight(150, 800, 800)
+    time.sleep(1)
+    # robot.move.turn_right(30, 90)
+    # robot.pickup.open_arms()
+    # time.sleep(3.5)
+    # robot.pickup.close_arms()
+
+# mdiff.odometry_start()
+# # Use odometry to drive to specific coordinates
+# mdiff.on_to_coordinates(SpeedRPM(40), 300, 300)
+# # Use odometry to go back to where we started
+# mdiff.on_to_coordinates(SpeedRPM(40), 0, 0)
+# # Use odometry to rotate in place to 90 degrees
+# mdiff.turn_to_angle(SpeedRPM(40), 90)
+# # Disable odometry
+# mdiff.odometry_stop()
 
 # from ev3dev2.sensor.lego import TouchSensor
 # from ev3dev2.sensor.lego import UltrasonicSensor
