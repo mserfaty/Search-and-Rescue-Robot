@@ -112,61 +112,65 @@ def detect_object(destination_coords):
             # Object is in range of metal detector
             if distance_object < SENSORS_DISTANCE:
                 robot.move.stop()
-                time.sleep(0.5)
+                time.sleep(1)
 
                 # Detect if object is metallic or not
                 if not robot.metal_detector.analog_read:
-                    robot.socket.metal = 0  # Update message for GUI
                     sound.speak("Non metal object detected")
+                    time.sleep(0.5)
+                    robot.socket.metal = 0  # Update message for GUI
                     time.sleep(3)
                     avoid_object()
                     return
 
-                # else:
-                robot.socket.metal = 1  # Update message for GUI
-                sound.speak("Metal object detected")
-                time.sleep(2)
+                else:
+                    sound.speak("Metal object detected")
+                    time.sleep(0.5)
+                    robot.socket.metal = 1  # Update message for GUI
+                    time.sleep(2)
 
-                # Sense color of object and handle it according to set priority
-                # TODO: color with RGB
-                detected_color = robot.color_sensor.COLORS[robot.color_sensor.color]
-                # detected_color = robot.color_sensor.color_name
-                # print(detected_color)
-                txt = "{0} object detected".format(detected_color)
-                sound.speak(txt)
-                # detected_color = robot.color_sensor.rgb
-                robot.socket.color = robot.color_sensor.rgb  # TODO
+                    # Sense color of object and handle it according to set priority
+                    # TODO: color with RGB
+                    detected_color = robot.color_sensor.COLORS[robot.color_sensor.color]
+                    # detected_color = robot.color_sensor.color_name
+                    # print(detected_color)
+                    txt = "{0} object detected".format(detected_color)
+                    sound.speak(txt)
+                    # detected_color = robot.color_sensor.rgb
+                    robot.socket.color = robot.color_sensor.rgb  # TODO
 
-                # No priority has been decided
-                try:
-                    if not pickup_priority:  # None or empty
+                    # No priority has been decided
+                    try:
+                        if not pickup_priority:  # None or empty
+                            pick_object()
+                            go_back()
+                            release_object()
+                    except NameError:
                         pick_object()
                         go_back()
                         release_object()
-                except NameError:
-                    pick_object()
-                    go_back()
-                    release_object()
 
-                # Object is number 1 priority
-                if detected_color == pickup_priority[0]:
-                    pick_object()
-                    go_back()
-                    release_object()
-                    pickup_priority.pop(0)  # Remove object from priority list
+                    # Object is number 1 priority
+                    if detected_color == pickup_priority[0]:
+                        pick_object()
+                        go_back()
+                        release_object()
+                        pickup_priority.pop(0)  # Remove object from priority list
 
-                    # List is empty so all objects have been taken
-                    if not pickup_priority:
+                        # List is empty so all objects have been taken
+                        if not pickup_priority:
+                            time.sleep(3)
+                            exit()
+
+                        time.sleep(3)
                         exit()
 
-                    exit()
-                    robot.move.go_for_distance(-AVOID_SPEED, 100)
-                    time.sleep(1)
-                    robot.move.go_to_coords(AREA_SPEED, x, y,
-                                            wait_until_not_moving=True)  # TODO: Remember coords of avoided objects
-
-                else:
-                    avoid_object()
+                        robot.move.go_for_distance(-AVOID_SPEED, 100)
+                        time.sleep(1)
+                        robot.move.go_to_coords(AREA_SPEED, x, y,
+                                                wait_until_not_moving=True)  # TODO: Remember coords of avoided objects
+                    else:
+                        avoid_object()
         time.sleep(0.05)
 
 
