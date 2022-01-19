@@ -200,7 +200,7 @@ public class Main extends PApplet {
         ellipse(circlex, 130, 20, 30);
         escalarma5 = loadImage("./data/final1.png");
         image(escalarma5, 280, 150); //loading the image 1 for status indicator
-
+        end_of_mission = 0;
     }
 
     public void receive_msg() {
