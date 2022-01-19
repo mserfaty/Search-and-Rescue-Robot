@@ -287,13 +287,6 @@ class MoveDiff(object):
             for element in position_motors:
                 pos_motors.write("%s\n" % str(element))
 
-    # def compute_speed(self, error):
-    #     self.p = error
-    #     self.i += error
-    #     self.d = error - self.last_error
-    #     self.last_error = error
-    #     return self.p * Kp + self.i * Ki + self.d * Kd
-
 
 # ==== Old Code with MoveDifferential and Move classes ====
 class MoveDifferentialBis(MoveTank):
