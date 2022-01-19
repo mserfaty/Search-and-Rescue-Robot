@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import time
+from threading import Thread
 
 from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
@@ -38,25 +39,40 @@ object_avoided = False
 # Pickup
 pickup_priority = ["Blue", "Black"]
 
+# Communication with GUI
+GUI_ADDRESS = {"host": "172.20.10.3", "port": 5204}
+
+
+def check_for_motor_movement():
+    while True:
+        if robot.move.mdiff.left_motor.is_running or robot.move.mdiff.right_motor.is_running:
+            robot.socket.in_movement = 1
+        else:
+            robot.socket.in_movement = 0
+        time.sleep(0.01)
+
 
 def pick_object():
     robot.pickup.close_arms()
     time.sleep(2)
+    robot.socket.picked_up = 1
 
 
 def release_object():
     robot.pickup.open_arms()
     time.sleep(2)
+    robot.socket.dropped = 1
 
 
 def go_back():
-    # print("ENTER GO BACK")
+    robot.socket.sensed_object = 0
+    robot.socket.metal = -1
     robot.move.go_to_coords(AREA_SPEED, 0, 0, wait_until_not_moving=True)
-    # print("EXIT GO BACK")
 
 
 def avoid_object():
     global object_avoided, skipcount
+    robot.socket.reset_msg()
 
     # Go backward to avoid hitting object, then go to 3 TRACK_WIDTH mm on the right and continue track
     robot.move.go_for_distance(-AVOID_SPEED, 100)
@@ -86,14 +102,12 @@ def detect_object(destination_coords):
 
         # Object detected at less than DISTANCE_OBJECT cm
         if distance_object < DISTANCE_OBJECT:
-            # print(robot.metal_detector.analog_read)
+            robot.socket.sensed_object = 1
 
             # Slow down the robot to avoid hitting the object
             if not has_slowed_down:
                 has_slowed_down = True
                 robot.move.slow_down(OBJECT_DETECTED_SPEED, x, y)
-            # robot.move.change_speed(robot.move.mdiff.left_motor, OBJECT_DETECTED_SPEED)
-            # robot.move.change_speed(robot.move.mdiff.right_motor, OBJECT_DETECTED_SPEED)
 
             # Object is in range of metal detector
             if distance_object < SENSORS_DISTANCE:
@@ -103,23 +117,31 @@ def detect_object(destination_coords):
                 # Detect if object is metallic or not
                 if not robot.metal_detector.analog_read:
                     sound.speak("Non metal object detected")
-                    print((x, y))
+                    time.sleep(0.5)
+                    robot.socket.metal = 0  # Update message for GUI
+                    time.sleep(3)
                     avoid_object()
                     return
+
                 else:
                     sound.speak("Metal object detected")
+                    time.sleep(0.5)
+                    robot.socket.metal = 1  # Update message for GUI
                     time.sleep(2)
 
                     # Sense color of object and handle it according to set priority
+                    # TODO: color with RGB
                     detected_color = robot.color_sensor.COLORS[robot.color_sensor.color]
-                    print(detected_color)
+                    # detected_color = robot.color_sensor.color_name
+                    # print(detected_color)
                     txt = "{0} object detected".format(detected_color)
                     sound.speak(txt)
+                    # detected_color = robot.color_sensor.rgb
+                    robot.socket.color = robot.color_sensor.rgb  # TODO
 
                     # No priority has been decided
                     try:
-                        # None or empty
-                        if not pickup_priority:
+                        if not pickup_priority:  # None or empty
                             pick_object()
                             go_back()
                             release_object()
@@ -130,7 +152,6 @@ def detect_object(destination_coords):
 
                     # Object is number 1 priority
                     if detected_color == pickup_priority[0]:
-                        print("ENTER")
                         pick_object()
                         go_back()
                         release_object()
@@ -138,13 +159,16 @@ def detect_object(destination_coords):
 
                         # List is empty so all objects have been taken
                         if not pickup_priority:
+                            time.sleep(3)
                             exit()
 
+                        time.sleep(3)
                         exit()
+
                         robot.move.go_for_distance(-AVOID_SPEED, 100)
                         time.sleep(1)
-                        robot.move.go_to_coords(AREA_SPEED, x, y, wait_until_not_moving=True)  # TODO: Remember coords of avoided objects
-
+                        robot.move.go_to_coords(AREA_SPEED, x, y,
+                                                wait_until_not_moving=True)  # TODO: Remember coords of avoided objects
                     else:
                         avoid_object()
         time.sleep(0.05)
@@ -196,11 +220,15 @@ def parallel_track_def():
 
 
 if __name__ == '__main__':
-    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
+    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
 
     # parallel_track = [(0, 1100), (200, 1100), (200, 200), (400, 200),
     #                   (400, 1100), (600, 1100), (600, 200), (800, 200),
     #                   (800, 1100), (0, 0)]
+
+    motor_mov_thread = Thread(target=check_for_motor_movement)
+    motor_mov_thread.setDaemon(True)
+    motor_mov_thread.start()
 
     if PARALLEL_TRACK:
         execute_track(parallel_track_def())
