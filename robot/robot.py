@@ -1,7 +1,15 @@
+"""
+License: You are free to use any part of code in this project as long as you mention original authors of this program:
+Alpha Team composed of: Nirmalraj JEYANATHAN Joseph - SERFATY Milan - YE Hang - ZHANG Yujia
+
+Supervised by Aurore (aurore.isep@gmail.com) and Hugo (myrobotswillconquertheworld@gmail.com)
+IE.3510 (System Modeling) - ISEP 2022
+"""
+
 from ev3dev2.port import LegoPort
 from ev3dev2.sensor.lego import UltrasonicSensor, GyroSensor, ColorSensor
 
-from move import MoveDiff
+from move import Move
 from detection import MetalDetector
 from pickup import Pickup
 from communication import Client
@@ -16,16 +24,14 @@ class Robot(object):
 
         if motor_ports:
             if "wheel_left" and "wheel_right" in motor_ports:
-                # self.move = Move(robot_length, motor_ports["wheel_left"], motor_ports["wheel_right"])
-                self.move = MoveDiff(robot_length, motor_ports["wheel_left"], motor_ports["wheel_right"])
-            # if "pickup_left" and "pickup_right" in motor_ports:
-            #     self.pickup = Pickup(motor_ports["pickup_left"], motor_ports["pickup_right"])
+                self.move = Move(robot_length, motor_ports["wheel_left"], motor_ports["wheel_right"])
                 print("WHEEL MOTORS INITIALIZED")
+
             if "pickup" in motor_ports:
                 self.pickup = Pickup(motor_ports["pickup"])
                 print("PICKUP MOTOR INITIALIZED")
 
-        if sensor_ports is not None:
+        if sensor_ports:
             if "metal_detector" in sensor_ports:
                 p1 = LegoPort(sensor_ports["metal_detector"])
                 p1.mode = 'nxt-analog'
@@ -45,7 +51,6 @@ class Robot(object):
             if "gyro_sensor" in sensor_ports and hasattr(self, "move"):
                 self.move.mdiff.gyro = GyroSensor(sensor_ports["gyro_sensor"])
                 self.move.mdiff.gyro.calibrate()
-                # self.move.mdiff.odometry_start()
-            print("GYRO SENSOR INITIALIZED")
+                print("GYRO SENSOR INITIALIZED")
 
         print("ROBOT INITIALIZED")

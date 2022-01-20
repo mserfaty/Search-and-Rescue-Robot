@@ -1,3 +1,12 @@
+"""
+License: You are free to use any part of code in this project as long as you mention original authors of this program:
+Alpha Team composed of: Nirmalraj JEYANATHAN Joseph - SERFATY Milan - YE Hang - ZHANG Yujia
+
+Supervised by Aurore (aurore.isep@gmail.com) and Hugo (myrobotswillconquertheworld@gmail.com)
+IE.3510 (System Modeling) - ISEP 2022
+"""
+
+
 class ParallelTrack:
     def __init__(self, parallel_pattern_front=False, parallel_pattern_side=False, track_width=200, area_max_value=1000):
         if parallel_pattern_front ^ parallel_pattern_side:

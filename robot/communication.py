@@ -1,3 +1,11 @@
+"""
+License: You are free to use any part of code in this project as long as you mention original authors of this program:
+Alpha Team composed of: Nirmalraj JEYANATHAN Joseph - SERFATY Milan - YE Hang - ZHANG Yujia
+
+Supervised by Aurore (aurore.isep@gmail.com) and Hugo (myrobotswillconquertheworld@gmail.com)
+IE.3510 (System Modeling) - ISEP 2022
+"""
+
 import time
 from socket import socket
 from threading import Thread
@@ -5,7 +13,7 @@ from threading import Thread
 
 class Client:
     """
-        Communication for GUI (client/Lego side)
+    Communication for GUI (client/Lego side)
     """
 
     def __init__(self, host='', port=5204):
@@ -13,8 +21,7 @@ class Client:
         self.host = host
         self.port = port
 
-        # Data to send
-        self.reset_msg()
+        self.reset_msg()  # Data to send
 
         self._is_connected = False
         self._connect()
@@ -36,7 +43,6 @@ class Client:
         while self._is_connected:
             try:
                 if self._msg_to_send != previous_msg:
-                    # self.socket.send("&ZE\nABC\n".encode())
                     self.socket.send(self.parse_msg().encode())
                     previous_msg = self._msg_to_send.copy()
             except Exception:
@@ -45,6 +51,11 @@ class Client:
         self.socket.close()
 
     def parse_msg(self):
+        """
+        Parse list of values to a single message
+        ex: from [0, 0, -1, (0, 0, 0), 0, 0] to "0\n0\n-1\n0\n0\n0\n0\n0"
+        """
+
         message = ""
         for value in self._msg_to_send:
             if isinstance(value, int):
@@ -57,7 +68,6 @@ class Client:
     def reset_msg(self):
         # in_movement, sensed_object, metal, color, picked_up, dropped
         self._msg_to_send = [0, 0, -1, (0, 0, 0), 0, 0]
-        # TODO: choose a good init value for color
 
     @property
     def in_movement(self):
