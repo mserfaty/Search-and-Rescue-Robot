@@ -11,11 +11,8 @@ ROBOT_LENGTH = 0
 MOTOR_PORTS = {}
 SENSOR_PORTS = {"color_sensor": INPUT_4}
 
-# Communication with GUI
-GUI_ADDRESS = {}
-
 if __name__ == '__main__':
-    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
+    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
     while True:
         detected_color = robot.color_sensor.rgb
         print(detected_color)

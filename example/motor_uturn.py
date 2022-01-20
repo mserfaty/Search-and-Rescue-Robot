@@ -11,10 +11,10 @@ from robot import Robot
 
 ROBOT_LENGTH_200 = 130.8  # 133.9
 ROBOT_LENGTH_150 = 134
-ROBOT_LENGTH = 105.5
+ROBOT_LENGTH = 110.2  # 105.5
 
 MOTOR_PORTS = {"wheel_left": OUTPUT_D, "wheel_right": OUTPUT_A}
-SENSOR_PORTS = {"gyro_sensor": INPUT_2}
+SENSOR_PORTS = {"gyro_sensor": INPUT_3}
 
 # robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS)
 
