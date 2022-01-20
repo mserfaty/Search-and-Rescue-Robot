@@ -7,6 +7,7 @@ from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.motor import OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D
 
 from robot import Robot
+from robot.patterns import SpiralPattern, ParallelTrack
 
 sound = Sound()
 
@@ -15,7 +16,9 @@ MOTOR_PORTS = {"wheel_right": OUTPUT_A, "pickup": OUTPUT_B, "wheel_left": OUTPUT
 SENSOR_PORTS = {"ultrasonic_sensor": INPUT_1, "metal_detector": INPUT_2, "gyro_sensor": INPUT_3,
                 "color_sensor": INPUT_4}
 
-ROBOT_LENGTH = 105.5  # 133.5  # 133.9
+ROBOT_LENGTH = 135
+ROBOT_LENGTH_SIDE = 125.5
+ROBOT_LENGTH_SPIRAL = 135
 
 # Distances
 DISTANCE_OBJECT = 200
@@ -28,13 +31,13 @@ TURNING_SPEED = 200
 OBJECT_DETECTED_SPEED = 50  # 3
 AVOID_SPEED = 100  # 10
 
-# Tracks properties
-TRACK_WIDTH = 50  # Width of the tracks for parallel track detection
-PARALLEL_TRACK = True
+# Patterns properties
+PATTERN_WIDTH = 200  # Width of the tracks for parallel track detection
 
-# Object avoidance
-skipcount = 0
-object_avoided = False
+# Selection of wanted pattern (put one to "True", all others to "False")
+PARALLEL_PATTERN_FRONT = True
+PARALLEL_PATTERN_SIDE = False
+SPIRAL_PATTERN = False
 
 # Pickup
 pickup_priority = ["Blue", "Black"]
@@ -70,23 +73,52 @@ def go_back():
     robot.move.go_to_coords(AREA_SPEED, 0, 0, wait_until_not_moving=True)
 
 
-def avoid_object():
-    global object_avoided, skipcount
+def define_increasing_axis(current_coords, cmd_coords):
+    """
+    Define which axis of x or y is increasing for avoiding object
+    
+    :param current_coords: current position of robot (Tuple[int, int])
+    :param cmd_coords: command where the robot were going before detecting an object (Tuple[int, int])
+    :return: "x" of "y" (str)
+    """
+    delta_x = abs(cmd_coords[0] - current_coords[0])
+    delta_y = abs(cmd_coords[1] - current_coords[1])
+    if max(delta_x, delta_y) == delta_x:
+        return "x"
+    else:
+        return "y"
+
+
+def avoid_object(cmd_x, cmd_y):
     robot.socket.reset_msg()
 
-    # Go backward to avoid hitting object, then go to 3 TRACK_WIDTH mm on the right and continue track
+    # Go backward to avoid hitting object
     robot.move.go_for_distance(-AVOID_SPEED, 100)
 
-    x = robot.move.mdiff.x_pos_mm + 3 * TRACK_WIDTH  # TODO: change nb 3
-    y = robot.move.mdiff.y_pos_mm
-    print((x, y), "AVOID")
+    # Get around the object to avoid it
+    current_coords = (robot.move.mdiff.x_pos_mm, robot.move.mdiff.y_pos_mm)
+    increasing_axis = define_increasing_axis(current_coords, (cmd_x, cmd_y))
+    if PARALLEL_PATTERN_FRONT or PARALLEL_PATTERN_SIDE or SPIRAL_PATTERN:
+        if increasing_axis == "x":  # Side
+            x = current_coords[0]
+            y = current_coords[1] + 1 * PATTERN_WIDTH
+        else:  # Front
+            x = current_coords[0] + 1 * PATTERN_WIDTH
+            y = current_coords[1]
+    else:
+        raise ValueError("No pattern specified")
     robot.move.go_to_coords(AVOID_SPEED, x, y, wait_until_not_moving=True)
     # detect_object((x, y))
     object_avoided = True
 
-    # TODO: add other patterns
-    if PARALLEL_TRACK:
-        skipcount = 4
+    # Continue track
+    if SPIRAL_PATTERN:
+        if increasing_axis == "x":  # Side
+            robot.move.go_to_coords(AVOID_SPEED, x, cmd_y)
+            detect_object((x, cmd_y))
+        else:  # Front
+            robot.move.go_to_coords(AVOID_SPEED, cmd_x, y)
+            detect_object((cmd_x, y))
 
 
 def detect_object(destination_coords):
@@ -120,7 +152,7 @@ def detect_object(destination_coords):
                     time.sleep(0.5)
                     robot.socket.metal = 0  # Update message for GUI
                     time.sleep(3)
-                    avoid_object()
+                    avoid_object(x, y)
                     return
 
                 else:
@@ -170,14 +202,12 @@ def detect_object(destination_coords):
                         robot.move.go_to_coords(AREA_SPEED, x, y,
                                                 wait_until_not_moving=True)  # TODO: Remember coords of avoided objects
                     else:
-                        avoid_object()
+                        avoid_object(x, y)
         time.sleep(0.05)
 
 
-def execute_track(track):
-    """Execute specified track and detect objects during execution"""
-    global object_avoided, skipcount
-
+def execute_pattern(track):
+    """Execute specified pattern and detect objects during execution"""
     robot.move.mdiff.odometry_start()  # Start odometry to track coordinates of the robot
 
     # Go to each pair of coordinates in the list while detecting potential objects
@@ -196,31 +226,16 @@ def execute_track(track):
         detect_object(coords)
 
     robot.move.mdiff.odometry_stop()  # When track is finished, stop tracking coordinates
-    print("FINISHED")
-    time.sleep(100)
-
-
-def parallel_track_def():
-    """Generate coordinates for parallel track with specified width between tracks"""
-
-    # Create list of coordinates (Tuple) between 0 and 1000 mm
-    track = [(x, y) for x in range(0, 1001, TRACK_WIDTH) for y in (0, 1000)]
-
-    # Reorder list to have the parallel track
-    try:
-        for i in range(0, len(track), 4):
-            track[i + 2], track[i + 3] = track[i + 3], track[i + 2]
-    except IndexError:
-        pass
-
-    # Put Origin to last element of list
-    track.append(track[0])
-    track.pop(0)
-    return track
 
 
 if __name__ == '__main__':
-    robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
+    # Instantiate a Robot object
+    if PARALLEL_PATTERN_FRONT:
+        robot = Robot(ROBOT_LENGTH, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
+    elif PARALLEL_PATTERN_SIDE:
+        robot = Robot(ROBOT_LENGTH_SIDE, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
+    elif SPIRAL_PATTERN:
+        robot = Robot(ROBOT_LENGTH_SPIRAL, MOTOR_PORTS, SENSOR_PORTS, GUI_ADDRESS)
 
     # parallel_track = [(0, 1100), (200, 1100), (200, 200), (400, 200),
     #                   (400, 1100), (600, 1100), (600, 200), (800, 200),
@@ -230,5 +245,10 @@ if __name__ == '__main__':
     motor_mov_thread.setDaemon(True)
     motor_mov_thread.start()
 
-    if PARALLEL_TRACK:
-        execute_track(parallel_track_def())
+    # Execute pattern
+    if PARALLEL_PATTERN_FRONT:
+        execute_pattern(ParallelTrack(parallel_pattern_front=True, track_width=PATTERN_WIDTH).pattern)
+    if PARALLEL_PATTERN_SIDE:
+        execute_pattern(ParallelTrack(parallel_pattern_side=True, track_width=PATTERN_WIDTH).pattern)
+    if SPIRAL_PATTERN:
+        execute_pattern(SpiralPattern(PATTERN_WIDTH).pattern)
