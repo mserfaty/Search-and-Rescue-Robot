@@ -18,7 +18,7 @@ class SpeedTacho(SpeedNativeUnits):
     Speed in tacho counts per second.
     """
 
-    def to_percentage(self, motor=None):
+    def to_percentage(self, motor):
         """
         Convert tacho speed to percentage
         """

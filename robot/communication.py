@@ -31,9 +31,9 @@ class Client:
         self._is_connected = True
 
         # Start sending messages to server
-        self.__send_thread = Thread(target=self._send_msg)
-        self.__send_thread.setDaemon(True)
-        self.__send_thread.start()
+        thread = Thread(target=self._send_msg)
+        thread.setDaemon(True)
+        thread.start()
 
     def disconnect(self):
         self._is_connected = False
